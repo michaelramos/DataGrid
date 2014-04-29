@@ -1,0 +1,83 @@
+.data-grid {
+	display: inline-block;
+	border: 1px solid #F5FAFA;
+	overflow: auto;
+}
+
+.data-grid-headers {
+	background-color: #6D929B;
+	background: -webkit-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Safari 5.1 to 6.0 */
+	background: -o-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Opera 11.1 to 12.0 */
+	background: -moz-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Firefox 3.6 to 15 */
+	background: linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* Standard syntax */
+	border: 1px solid #F5FAFA;
+	border-top: 1px solid #F5FAFA;
+	/*border-left: 1px solid #F5FAFA;*/
+	border-bottom: 1px solid #C3DFDF;
+	border-right: 1px solid #C3DFDF;
+	position: relative;
+	float: left;
+	display: block;
+}
+
+.data-grid-header {
+	display: inline-block;
+	position: relative;
+	float: left;
+	background-color: #6D929B;
+	background: -webkit-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Safari 5.1 to 6.0 */
+	background: -o-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Opera 11.1 to 12.0 */
+	background: -moz-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Firefox 3.6 to 15 */
+	background: linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* Standard syntax */
+	border-left: 1px solid #F5FAFA;
+	padding: 2px 5px;
+	color: #FFF;
+	font-weight: bold;
+	font-size: 10px;
+}
+
+.data-grid-header.data-grid-header-special:hover {
+	background-color: #9BB4BB;
+	background: -webkit-linear-gradient(#F2F7F7, #9BB4BB, #B3D1CB); /* For Safari 5.1 to 6.0 */
+	background: -o-linear-gradient(#F2F7F7, #9BB4BB, #B3D1CB); /* For Opera 11.1 to 12.0 */
+	background: -moz-linear-gradient(#F2F7F7, #9BB4BB, #B3D1CB); /* For Firefox 3.6 to 15 */
+	background: linear-gradient(#F2F7F7, #9BB4BB, #B3D1CB); /* Standard syntax */
+	cursor: pointer;
+}
+
+.data-grid-header .data-grid-sort {
+	float: right;
+	font-size: 10px;
+	font-weight: bold;
+	overflow: hidden;
+}
+
+.data-grid-data {
+	overflow: auto;
+}
+
+.data-grid-row {
+	display: block;
+	position: relative;
+}
+
+.data-grid-row .data-grid-cell {
+	display: inline-block;
+	position: relative;
+	color: #666666;
+	font-size: 10px;
+	padding: 1px 5px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.data-grid-row.data-grid-row-odd,
+.data-grid-row.data-grid-row-odd .data-grid-cell {
+	background-color: #FFF;
+}
+
+.data-grid-row.data-grid-row-even,
+.data-grid-row.data-grid-row-even .data-grid-cell {
+	background-color: #F5FAFA;
+}
