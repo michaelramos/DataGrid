@@ -2,7 +2,6 @@
     position: relative;
     display: inline-block;
     border: 1px solid #F5FAFA;
-    overflow: auto;
 }
 
 .data-grid-headers {
@@ -15,15 +14,14 @@
     border-top: 1px solid #F5FAFA;
     border-bottom: 1px solid #C3DFDF;
     border-right: 1px solid #C3DFDF;
-    position: relative;
     float: left;
     display: block;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .data-grid-header {
-    display: inline-block;
-    position: relative;
-    float: left;
     background-color: #6D929B;
     background: -webkit-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Safari 5.1 to 6.0 */
     background: -o-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Opera 11.1 to 12.0 */
@@ -34,6 +32,10 @@
     color: #FFF;
     font-weight: bold;
     font-size: 10px;
+    top: 0px;
+    display: inline-block;
+    position: relative;
+
 }
 
 .data-grid-header.data-grid-header-special:hover {
@@ -53,7 +55,8 @@
 }
 
 .data-grid-data {
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 .data-grid-content {
@@ -65,11 +68,15 @@
 }
 
 .data-grid-row {
+    float: left;
     display: block;
     position: relative;
+    overflow: hidden;
+    white-space: nowrap;
 }
 
 .data-grid-row .data-grid-cell {
+    top: 0px;
     display: inline-block;
     position: relative;
     color: #666666;
@@ -78,6 +85,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    min-height: 10px;
 }
 
 .data-grid-row.data-grid-row-odd,

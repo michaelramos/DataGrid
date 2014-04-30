@@ -270,7 +270,7 @@
                 clearTimeout(timer);
                 timer = setTimeout(function() {
                     _this.refreshDataItems($(dataDiv).scrollTop());
-                }, 150);
+                }, 100);
 
             });
             $(dataDiv).height($(_this).innerHeight() - $(headerDiv).outerHeight());
