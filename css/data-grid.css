@@ -1,7 +1,11 @@
 .data-grid {
+    border: 0;
+    margin: 0;
     position: relative;
     display: inline-block;
     border: 1px solid #F5FAFA;
+    overflow-x: auto;
+    overflow-y: auto;
 }
 
 .data-grid-headers {
@@ -11,9 +15,6 @@
     background: -moz-linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* For Firefox 3.6 to 15 */
     background: linear-gradient(#C1DAD6, #6D929B, #83B4AB); /* Standard syntax */
     border: 1px solid #F5FAFA;
-    border-top: 1px solid #F5FAFA;
-    border-bottom: 1px solid #C3DFDF;
-    border-right: 1px solid #C3DFDF;
     float: left;
     display: block;
     position: relative;
@@ -35,7 +36,10 @@
     top: 0px;
     display: inline-block;
     position: relative;
+}
 
+.data-grid-header:first-child {
+    border-left: none;
 }
 
 .data-grid-header.data-grid-header-special:hover {
@@ -47,16 +51,37 @@
     cursor: pointer;
 }
 
+.data-grid-header .data-grid-header-title {
+    float: left;
+    position: relative;
+    display: inline-block;
+    font-weight: bold;
+}
+
+.data-grid-header.data-grid-header-sort {
+    background: -webkit-linear-gradient(#83B4AB, #6D929B, #C1DAD6); /* For Safari 5.1 to 6.0 */
+    background: -o-linear-gradient(#83B4AB, #6D929B, #C1DAD6); /* For Opera 11.1 to 12.0 */
+    background: -moz-linear-gradient(#83B4AB, #6D929B, #C1DAD6); /* For Firefox 3.6 to 15 */
+    background: linear-gradient(#83B4AB, #6D929B, #C1DAD6); /* Standard syntax */
+}
+
 .data-grid-header .data-grid-sort {
     float: right;
     font-size: 10px;
-    font-weight: bold;
     overflow: hidden;
+    display: inline-block;
+    position: relative;
 }
 
 .data-grid-data {
     overflow-x: hidden;
     overflow-y: auto;
+    display: block;
+    float: left;
+    display: block;
+    position: relative;
+    border: 1px solid #F5FAFA;
+    border-top: none;
 }
 
 .data-grid-content {
@@ -75,6 +100,18 @@
     white-space: nowrap;
 }
 
+.data-grid-row.data-grid-row-odd {
+    background-color: #FFF;
+}
+
+.data-grid-row.data-grid-row-even {
+    background-color: #F5FAFA;
+}
+
+.data-grid-row.data-grid-row-selected {
+    background-color: #FFFFCC;
+}
+
 .data-grid-row .data-grid-cell {
     top: 0px;
     display: inline-block;
@@ -86,14 +123,18 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-height: 10px;
+    /*border-left: 1px solid #F5FAFA;*/
+    border-left: 1px solid transparent;
+    border-top: 1px solid transparent;
 }
 
-.data-grid-row.data-grid-row-odd,
-.data-grid-row.data-grid-row-odd .data-grid-cell {
-    background-color: #FFF;
+.data-grid-row .data-grid-cell:first-child {
+    border-left: none;
+    border-top: none;
 }
 
-.data-grid-row.data-grid-row-even,
-.data-grid-row.data-grid-row-even .data-grid-cell {
-    background-color: #F5FAFA;
+.data-grid-row.data-grid-row-selected .data-grid-cell.data-grid-cell-selected {
+    /*border-left: 1px solid #6D929B;
+    border-top: 1px solid #6D929B;*/
 }
+

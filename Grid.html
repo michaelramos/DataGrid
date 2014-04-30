@@ -29,7 +29,8 @@
                         }, {
                             id: 'bidOwner',
                             title: 'Owner',
-                            field: 'bidOwner'
+                            field: 'bidOwner',
+                            sortable: true
                         }, {
                             id: "autoRateUser",
                             title: 'Auto Rate User',
@@ -47,16 +48,16 @@
                         pageItemCount: 10
                     },
                     onCellClicked: function(value, row, col) {
-                        alert('Cell clicked ' + value);
+                        //alert('Cell clicked ' + value);
                     },
                     onCellDblClicked: function(value, row, col) {
-                        alert('Cell dblclicked ' + value);
+                        //alert('Cell dblclicked ' + value);
                     },
                     onRowClicked: function(value, row) {
-                        alert('Row clicked ' + value.id);
+                        //alert('Row clicked ' + value.id);
                     },
                     onRowDblClicked: function(value, row) {
-                        alert('Row dblclicked ' + value.id);
+                        //alert('Row dblclicked ' + value.id);
                     }
                 });
 

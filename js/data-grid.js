@@ -7,8 +7,6 @@
             columns: [],
             data: [],
             allowReorderColumns: false,
-            dataCache: [],
-            columnsCacge: [],
             sortColumn: undefined,
             sortField: undefined,
             sortAsc: true,
@@ -16,6 +14,7 @@
             onRowClicked: undefined,
             onRowDblClicked: undefined
         };
+
         var columnDefaults = {
             id: undefined,
             title: '',
@@ -29,8 +28,9 @@
             currentPage: 1
         };
         var settings = $.extend(gridDefaults, options);
-        settings.dataCache = settings.data;
-        settings.columnsCache = settings.columns;
+        var dataCache = $.extend([], settings.data);
+        var columnsCache = $.extend([], settings.columns);
+
         var pageOption;
         if (settings.pageOption)
             pageOption = $.extend({}, pageDefaults, settings.pageOption);
@@ -115,11 +115,12 @@
         this.refreshHeader = function() {
             headerDiv.html('');
             var columnInfos = [];
-            for (var columnIdx in settings.columnsCache) {
-                var column = settings.columnsCache[columnIdx];
+            for (var columnIdx in columnsCache) {
+                var column = columnsCache[columnIdx];
                 var columnInfo = $.extend({}, columnDefaults, column);
                 columnInfos.push(columnInfo);
-                var columnHeaderDiv = $('<div class="data-grid-header">' + columnInfo.title + '</div>').appendTo(headerDiv);
+                var columnHeaderDiv = $('<div class="data-grid-header"></div>').appendTo(headerDiv);
+                $('<div class="data-grid-header-title">' + columnInfo.title + '</div>').appendTo(columnHeaderDiv);
                 columnHeaderDiv.data('column-id', columnInfo.id);
                 columnHeaderDiv.width(columnInfo.width);
                 if (columnInfo.sortable || settings.allowReorderColumns) {
@@ -128,12 +129,16 @@
 
                 //For Sorting
                 $(columnHeaderDiv).click(function() {
-                    $('.data-grid-sort').remove();
                     var columnId = $(this).data('column-id');
-                    var columns = settings.columnsCache.filter(function(column) {
-                        return column.id === columnId;
+                    var columns = columnsCache.filter(function(column) {
+                        return column.id === columnId && column.sortable;
                     });
-                    var sortDiv = $('<span class="data-grid-sort"></span>').appendTo(this);
+                    if (columns.length === 0)
+                        return;
+                    $('.data-grid-sort').remove();
+                    var sortDiv = $('<div class="data-grid-sort"></div>').appendTo(this);
+                    $('.data-grid-header-sort').removeClass('data-grid-header-sort');
+                    $(this).addClass('data-grid-header-sort');
                     for (var sortColumnIdx in columns) {
                         var sortColumn = columns[sortColumnIdx];
                         if (sortColumn.id === settings.sortColumn) {
@@ -149,24 +154,26 @@
                             sortDiv.append('&#x25B2;');
                         _this.sortData(sortColumn.id);
                     }
+                    $(dataDiv).scrollTop(0);
                 });
             }
-            settings.columnsCache = columnInfos;
+            columnsCache = $.extend([], columnInfos);
             //For Header Reorder
             $(headerDiv).sortable({
                 tolerance: 'pointer',
                 axis: 'x',
+                helper: 'clone',
                 update: function(event, ui) {
                     var prev = ui.item.prev('.data-grid-header');
                     var next = ui.item.next('.data-grid-header');
                     var columnReorderIdx;
-                    for (var columnIdx in settings.columnsCache) {
-                        if (settings.columnsCache[columnIdx].id === ui.item.data('column-id')) {
+                    for (var columnIdx in columnsCache) {
+                        if (columnsCache[columnIdx].id === ui.item.data('column-id')) {
                             columnReorderIdx = columnIdx;
                             break;
                         }
                     }
-                    settings.columnsCache.splice($('.data-grid-header').index(ui.item), 0, settings.columnsCache.splice(columnReorderIdx, 1)[0]);
+                    columnsCache.splice($('.data-grid-header').index(ui.item), 0, columnsCache.splice(columnReorderIdx, 1)[0]);
                     tableDiv.find('.data-grid-cell').filter(function(index) {
                         return $(this).data('column-id') === ui.item.data('column-id');
                     }).each(function() {
@@ -188,15 +195,15 @@
                 }
             });
             $(headerDiv).disableSelection();
-            $(headerDiv).width($(_this).innerWidth());
+            //$(headerDiv).width($(_this).innerWidth());
         };
 
         this.drawDataItem = function(itemIdx) {
-            var item = settings.dataCache[itemIdx];
+            var item = dataCache[itemIdx];
             var columnDataRowDiv = $('<div class="data-grid-row"></div>').appendTo(dataContentPartDiv);
             columnDataRowDiv.data('row', itemIdx);
-            for (var columnInfoIdx in settings.columnsCache) {
-                var columnInfo = settings.columnsCache[columnInfoIdx];
+            for (var columnInfoIdx in columnsCache) {
+                var columnInfo = columnsCache[columnInfoIdx];
                 var cellDiv = $('<div class="data-grid-cell"></div>').appendTo(columnDataRowDiv);
                 cellDiv.data('column-id', columnInfo.id);
                 cellDiv.data('column', columnInfoIdx);
@@ -207,11 +214,15 @@
                     cellDiv.width(columnInfo.width);
                 }
                 //Hook Cell events
-                if (settings.onCellClicked) {
-                    cellDiv.click(function(e) {
+
+                cellDiv.click(function(e) {
+                    $('.data-grid-cell-selected').removeClass('data-grid-cell-selected');
+                    $(this).addClass('data-grid-cell-selected');
+                    if (settings.onCellClicked) {
                         settings.onCellClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
-                    });
-                }
+                    }
+                });
+
                 if (settings.onCellDblClicked) {
                     cellDiv.dblclick(function(e) {
                         settings.onCellDblClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
@@ -220,14 +231,18 @@
             }
 
             //Hook Row evets
-            if (settings.onRowClicked) {
-                columnDataRowDiv.click(function(e) {
-                    settings.onRowClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
-                });
-            }
+
+            columnDataRowDiv.click(function(e) {
+                $('.data-grid-row-selected').removeClass('data-grid-row-selected');
+                $(this).addClass('data-grid-row-selected');
+                if (settings.onRowClicked) {
+                    settings.onRowClicked(dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
+                }
+            });
+
             if (settings.onRowDblClicked) {
                 columnDataRowDiv.dblclick(function(e) {
-                    settings.onRowDblClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
+                    settings.onRowDblClicked(dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
                 });
             }
 
@@ -242,17 +257,17 @@
 
         this.refreshDataItems = function(scrollTop) {
             $(dataContentDiv).html('');
-            if (settings.dataCache.length === 0)
+            if (dataCache.length === 0)
                 return;
             dataContentPartDiv = $('<div class="data-grid-view-data"></div>').appendTo(dataContentDiv);
             var firstItem = _this.drawDataItem(0);
-            $(dataContentDiv).innerHeight($(firstItem).outerHeight() * settings.dataCache.length);
+            $(dataContentDiv).innerHeight($(firstItem).outerHeight() * dataCache.length);
             $(dataContentPartDiv).outerHeight($(dataDiv).outerHeight());
             $(dataContentPartDiv).css('top', parseInt(scrollTop / $(firstItem).outerHeight()) * $(firstItem).outerHeight());
             var noOfRows = Math.round($(dataContentPartDiv).innerHeight() / $(firstItem).outerHeight()) + 1;
             if (scrollTop !== 0) {
                 var firstIdx = parseInt(scrollTop / $(firstItem).outerHeight());
-                for (var dataIdx = firstIdx; dataIdx < noOfRows + firstIdx && dataIdx < settings.dataCache.length; dataIdx++) {
+                for (var dataIdx = firstIdx; dataIdx < noOfRows + firstIdx && dataIdx < dataCache.length; dataIdx++) {
                     _this.drawDataItem(dataIdx);
                 }
                 $(firstItem).remove();
@@ -274,14 +289,14 @@
 
             });
             $(dataDiv).height($(_this).innerHeight() - $(headerDiv).outerHeight());
-            $(dataDiv).width($(_this).innerWidth());
+            //$(dataDiv).width($(_this).innerWidth());
             dataContentDiv = $('<div class="data-grid-content"></div>').appendTo(dataDiv);
             _this.refreshDataItems($(dataDiv).scrollTop());
         };
 
         this.sortData = function(columnId) {
-            for (var columnIdx in settings.columnsCache) {
-                var column = settings.columnsCache[columnIdx];
+            for (var columnIdx in columnsCache) {
+                var column = columnsCache[columnIdx];
                 if (column.id === columnId) {
                     var sortFunction = sortLib.text.cmp;
                     switch (column.dataType) {
@@ -291,7 +306,7 @@
                         default:
                             sortFunction = sortLib.text.cmp;
                     }
-                    settings.dataCache.sort(sortFunction);
+                    dataCache.sort(sortFunction);
                     break;
                 }
             }
