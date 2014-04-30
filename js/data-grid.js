@@ -3,6 +3,7 @@
     $.fn.dataGrid = function(options) {
 
         var gridDefaults = {
+            pageOption: undefined,
             columns: [],
             data: [],
             allowReorderColumns: false,
@@ -15,7 +16,6 @@
             onRowClicked: undefined,
             onRowDblClicked: undefined
         };
-
         var columnDefaults = {
             id: undefined,
             title: '',
@@ -24,11 +24,16 @@
             sortable: false,
             dataType: 'text'
         };
-
+        var pageDefaults = {
+            pageItemCount: 10,
+            currentPage: 1
+        };
         var settings = $.extend(gridDefaults, options);
         settings.dataCache = settings.data;
         settings.columnsCache = settings.columns;
-
+        var pageOption;
+        if (settings.pageOption)
+            pageOption = $.extend({}, pageDefaults, settings.pageOption);
         var sortLib = {
             number: {
                 cmp: function(a, b) {
@@ -61,12 +66,10 @@
                 }
             }
         };
-
         // http://my.opera.com/GreyWyvern/blog/show.dml/1671288
         function natCaseSort(a, b) {
             function chunkify(t) {
                 var tz = [], x = 0, y = -1, n = 0, i, j;
-
                 while (i = (j = t.charAt(x++)).charCodeAt(0)) {
                     var m = (i == 46 || (i >= 48 && i <= 57));
                     if (m !== n) {
@@ -80,7 +83,6 @@
 
             var aa = (a) ? chunkify(a.toLowerCase()) : [];
             var bb = (b) ? chunkify(b.toLowerCase()) : [];
-
             for (x = 0; aa[x] && bb[x]; x++) {
                 if (aa[x] !== bb[x]) {
                     var c = Number(aa[x]), d = Number(bb[x]);
@@ -99,13 +101,13 @@
         var tableDiv;
         var headerDiv;
         var dataDiv;
-
+        var dataContentDiv;
+        var dataContentPartDiv;
 
         this.refresh = function() {
             tableDiv = $('<div class="data-grid"></div>').appendTo(this);
             headerDiv = $('<div class="data-grid-headers"></div>').appendTo(tableDiv);
             dataDiv = $('<div class="data-grid-data"></div>').appendTo(tableDiv);
-
             _this.refreshHeader();
             _this.refreshData();
         };
@@ -150,7 +152,6 @@
                 });
             }
             settings.columnsCache = columnInfos;
-
             //For Header Reorder
             $(headerDiv).sortable({
                 tolerance: 'pointer',
@@ -180,62 +181,96 @@
                 }
             });
             $(headerDiv).disableSelection();
-
             $(headerDiv).width($(_this).innerWidth());
+        };
+
+        this.drawDataItem = function(itemIdx) {
+            var item = settings.dataCache[itemIdx];
+            var columnDataRowDiv = $('<div class="data-grid-row"></div>').appendTo(dataContentPartDiv);
+            columnDataRowDiv.data('row', itemIdx);
+            for (var columnInfoIdx in settings.columnsCache) {
+                var columnInfo = settings.columnsCache[columnInfoIdx];
+                var cellDiv = $('<div class="data-grid-cell"></div>').appendTo(columnDataRowDiv);
+                cellDiv.data('column-id', columnInfo.id);
+                cellDiv.data('column', columnInfoIdx);
+                cellDiv.data('row', itemIdx);
+                if (columnInfo.field) {
+                    cellDiv.html(item[columnInfo.field]);
+                    cellDiv.data('value', item[columnInfo.field]);
+                    cellDiv.width(columnInfo.width);
+                }
+                //Hook Cell events
+                if (settings.onCellClicked) {
+                    cellDiv.click(function(e) {
+                        settings.onCellClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
+                    });
+                }
+                if (settings.onCellDblClicked) {
+                    cellDiv.dblclick(function(e) {
+                        settings.onCellDblClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
+                    });
+                }
+            }
+
+            //Hook Row evets
+            if (settings.onRowClicked) {
+                columnDataRowDiv.click(function(e) {
+                    settings.onRowClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
+                });
+            }
+            if (settings.onRowDblClicked) {
+                columnDataRowDiv.dblclick(function(e) {
+                    settings.onRowDblClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
+                });
+            }
+
+            if (itemIdx % 2 === 0) {
+                columnDataRowDiv.addClass('data-grid-row-odd');
+            } else {
+                columnDataRowDiv.addClass('data-grid-row-even');
+            }
+
+            return columnDataRowDiv;
+        };
+
+        this.refreshDataItems = function(scrollTop) {
+            $(dataContentDiv).html('');
+            if (settings.dataCache.length === 0)
+                return;
+            dataContentPartDiv = $('<div class="data-grid-view-data"></div>').appendTo(dataContentDiv);
+            var firstItem = _this.drawDataItem(0);
+            $(dataContentDiv).innerHeight($(firstItem).outerHeight() * settings.dataCache.length);
+            $(dataContentPartDiv).outerHeight($(dataDiv).outerHeight());
+            $(dataContentPartDiv).css('top', parseInt(scrollTop / $(firstItem).outerHeight()) * $(firstItem).outerHeight());
+            var noOfRows = Math.round($(dataContentPartDiv).innerHeight() / $(firstItem).outerHeight()) + 1;
+            if (scrollTop !== 0) {
+                var firstIdx = parseInt(scrollTop / $(firstItem).outerHeight());
+                for (var dataIdx = firstIdx; dataIdx < noOfRows + firstIdx && dataIdx < settings.dataCache.length; dataIdx++) {
+                    _this.drawDataItem(dataIdx);
+                }
+                $(firstItem).remove();
+            } else {
+                for (var dataIdx = 1; dataIdx < noOfRows; dataIdx++) {
+                    _this.drawDataItem(dataIdx);
+                }
+            }
         };
 
         this.refreshData = function() {
             dataDiv.html('');
+            var timer;
+            $(dataDiv).scroll(function() {
+                clearTimeout(timer);
+                timer = setTimeout(function() {
+                    _this.refreshDataItems($(dataDiv).scrollTop());
+                }, 150);
+
+            });
             $(dataDiv).height($(_this).innerHeight() - $(headerDiv).outerHeight());
             $(dataDiv).width($(_this).innerWidth());
-
-            for (var itemIdx in settings.dataCache) {
-                var item = settings.dataCache[itemIdx];
-                var columnDataRowDiv = $('<div class="data-grid-row"></div>').appendTo(dataDiv);
-                columnDataRowDiv.data('row', itemIdx);
-                for (var columnInfoIdx in settings.columnsCache) {
-                    var columnInfo = settings.columnsCache[columnInfoIdx];
-                    var cellDiv = $('<div class="data-grid-cell"></div>').appendTo(columnDataRowDiv);
-                    cellDiv.data('column-id', columnInfo.id);
-                    cellDiv.data('column', columnInfoIdx);
-                    cellDiv.data('row', itemIdx);
-                    if (columnInfo.field) {
-                        cellDiv.html(item[columnInfo.field]);
-                        cellDiv.data('value', item[columnInfo.field]);
-                        cellDiv.width(columnInfo.width);
-                    }
-                    //Hook Cell events
-                    if (settings.onCellClicked) {
-                        cellDiv.click(function(e) {
-                            settings.onCellClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
-                        });
-                    }
-                    if (settings.onCellDblClicked) {
-                        cellDiv.dblclick(function(e) {
-                            settings.onCellDblClicked($(this).data('value'), parseInt(cellDiv.data('row')), parseInt(cellDiv.data('column')));
-                        });
-                    }
-                }
-
-                //Hook Row evets
-                if (settings.onRowClicked) {
-                    columnDataRowDiv.click(function(e) {
-                        settings.onRowClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
-                    });
-                }
-                if (settings.onRowDblClicked) {
-                    columnDataRowDiv.dblclick(function(e) {
-                        settings.onRowDblClicked(settings.dataCache[parseInt(cellDiv.data('row'))], parseInt(cellDiv.data('row')));
-                    });
-                }
-
-                if (itemIdx % 2 === 0) {
-                    columnDataRowDiv.addClass('data-grid-row-odd');
-                } else {
-                    columnDataRowDiv.addClass('data-grid-row-even');
-                }
-
-            }
+            console.log($(dataDiv).scrollTop());
+            dataContentDiv = $('<div class="data-grid-content"></div>').appendTo(dataDiv);
+            _this.refreshDataItems($(dataDiv).scrollTop());
         };
 
         this.sortData = function(columnId) {
