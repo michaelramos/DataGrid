@@ -127,7 +127,7 @@
                 }
 
                 //For Sorting
-                $(columnHeaderDiv).dblclick(function() {
+                $(columnHeaderDiv).click(function() {
                     $('.data-grid-sort').remove();
                     var columnId = $(this).data('column-id');
                     var columns = settings.columnsCache.filter(function(column) {
@@ -156,10 +156,17 @@
             $(headerDiv).sortable({
                 tolerance: 'pointer',
                 axis: 'x',
-                helper: "clone",
                 update: function(event, ui) {
                     var prev = ui.item.prev('.data-grid-header');
                     var next = ui.item.next('.data-grid-header');
+                    var columnReorderIdx;
+                    for (var columnIdx in settings.columnsCache) {
+                        if (settings.columnsCache[columnIdx].id === ui.item.data('column-id')) {
+                            columnReorderIdx = columnIdx;
+                            break;
+                        }
+                    }
+                    settings.columnsCache.splice($('.data-grid-header').index(ui.item), 0, settings.columnsCache.splice(columnReorderIdx, 1)[0]);
                     tableDiv.find('.data-grid-cell').filter(function(index) {
                         return $(this).data('column-id') === ui.item.data('column-id');
                     }).each(function() {
@@ -268,7 +275,6 @@
             });
             $(dataDiv).height($(_this).innerHeight() - $(headerDiv).outerHeight());
             $(dataDiv).width($(_this).innerWidth());
-            console.log($(dataDiv).scrollTop());
             dataContentDiv = $('<div class="data-grid-content"></div>').appendTo(dataDiv);
             _this.refreshDataItems($(dataDiv).scrollTop());
         };
@@ -289,7 +295,7 @@
                     break;
                 }
             }
-            _this.refreshData();
+            _this.refreshDataItems($(dataContentDiv).scrollTop());
         };
 
         return this.each(function() {
